@@ -1,0 +1,3 @@
+GET /stream/4 HTTP/1.1
+hOST:  httpbin.org
+Connection: Close
