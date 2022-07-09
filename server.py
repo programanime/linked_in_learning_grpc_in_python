@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from logging import exception
+from time import perf_counter
 from uuid import uuid4
 import grpc
 import rides_pb2 as pb
@@ -9,6 +10,16 @@ import validate
 
 def new_ride_id():
     return str(uuid4().hex)
+
+class TimingInterceptor(grpc.ServerInterceptor):
+    def intercept_service(self, continuation, handler_call_details):
+        start = perf_counter()
+        try:
+            return continuation(handler_call_details)
+        finally:
+            duration = perf_counter() - start
+            name = handler_call_details.method
+            print("{} took {:.2f}ms".format(name, duration * 1000))
 
 class Rides(rpc.RidesServicer):
     def Start(self, request, context):
@@ -30,7 +41,11 @@ class Rides(rpc.RidesServicer):
         return pb.TrackResponse(count=count)
 
 if __name__ == '__main__':
-    server = grpc.server(ThreadPoolExecutor())
+    server = grpc.server(
+        ThreadPoolExecutor(),
+        interceptors=(TimingInterceptor(),)
+    )
+
     rpc.add_RidesServicer_to_server(Rides(), server)
     names = (
         pb.DESCRIPTOR.services_by_name['Rides'].full_name,
