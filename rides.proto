@@ -11,6 +11,17 @@ enum RideType{
     POOL = 1;
 }
 
+message TrackRequest {
+    int64 car_id = 1;
+    google.protobuf.Timestamp time = 2;
+    Location location = 3;
+}
+
+message TrackResponse {
+    uint64 count = 1;
+}
+
+
 message StartRequest {
     int64 car_id = 1;
     string driver_id = 2;
@@ -26,6 +37,7 @@ message StartResponse {
 
 service Rides{
     rpc Start(StartRequest) returns (StartResponse) {}
+    rpc Track(stream TrackRequest) returns (TrackResponse);
 }
 
 

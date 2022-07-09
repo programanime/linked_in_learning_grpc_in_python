@@ -1,3 +1,4 @@
+from events import rand_events
 import grpc
 import rides_pb2_grpc as rpc
 import rides_pb2 as pb
@@ -25,11 +26,20 @@ class Client():
         except grpc.RpcError as err:
             raise grpc.RpcError(f"{err.code()}: {err.details()}") 
         return response.id
+
+    def track(self, events):
+        return self.stub.Track(track_request(event) for event in events)
+
+def track_request(event):
+    request = pb.TrackRequest(
+        car_id=event.car_id,
+        location=pb.Location(lat=event.lat, lng=event.lng),
+    )
+    request.time.FromDatetime(event.time)
+    return request
     
-if __name__ == '__main__':
-    address = f'localhost:8888'
-    
-    client = Client(address)
+def consume_client(client):
+    print("consuming client...")
     ride_id = client.ride_start(
         car_id=1,
         driver_id="driver_id",
@@ -41,3 +51,20 @@ if __name__ == '__main__':
     )
 
     print(ride_id)
+
+def consume_stream_client(client):
+    events = rand_events(10)
+    try:
+        response = client.track(events) 
+        print(f"getting some anwer {response}")
+    except Exception as err:
+        print("error"+str(err))
+    
+
+
+if __name__ == '__main__':
+    address = f'localhost:8888'
+    client = Client(address)
+
+    consume_client(client)
+    consume_stream_client(client)
