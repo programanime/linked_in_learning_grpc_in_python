@@ -17,3 +17,6 @@ python client.py
 
 # generate openssl certificate
 openssl req -newkey rsa:4096 -x509 -days 365 -nodes -subj '/CN=localhost' -keyout key.pem -out cert.pem
+
+#run tests
+python -m pytest -v

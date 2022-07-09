@@ -49,7 +49,8 @@ def load_credentials():
 
     return grpc.ssl_server_credentials([(key, cert)])
 
-if __name__ == '__main__':
+
+def build_server(port):
     server = grpc.server(
         ThreadPoolExecutor(),
         interceptors=(TimingInterceptor(),)
@@ -62,9 +63,13 @@ if __name__ == '__main__':
     )
     reflection.enable_server_reflection(names, server)
 
-    credentials = load_credentials()
+    # credentials = load_credentials()
     # openssl req -newkey rsa:4096 -x509 -days 365 -nodes -subj '/CN=localhost' -keyout key.pem -out cert.pem
     # server.add_secure_port('[::]:8888', credentials)
-    server.add_insecure_port('[::]:8888')
+    server.add_insecure_port(f'[::]:{port}')
+    return server
+
+if __name__ == '__main__':
+    server = build_server("8888")
     server.start()
     server.wait_for_termination()
