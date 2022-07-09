@@ -40,6 +40,15 @@ class Rides(rpc.RidesServicer):
             count += 1
         return pb.TrackResponse(count=count)
 
+def load_credentials():
+    with open("cert.pem", "rb") as f:
+        cert = f.read()
+    
+    with open("key.pem", "rb") as f:
+        key = f.read()
+
+    return grpc.ssl_server_credentials([(key, cert)])
+
 if __name__ == '__main__':
     server = grpc.server(
         ThreadPoolExecutor(),
@@ -52,6 +61,10 @@ if __name__ == '__main__':
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(names, server)
+
+    credentials = load_credentials()
+    # openssl req -newkey rsa:4096 -x509 -days 365 -nodes -subj '/CN=localhost' -keyout key.pem -out cert.pem
+    # server.add_secure_port('[::]:8888', credentials)
     server.add_insecure_port('[::]:8888')
     server.start()
     server.wait_for_termination()
